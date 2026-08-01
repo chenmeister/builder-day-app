@@ -1,22 +1,55 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { generateRecipe, type Recipe } from "./recipe-actions";
+import { generateRecipe, saveRecipe, type Recipe } from "./recipe-actions";
 
 export function RecipeGenerator() {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [isSaved, setIsSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [isSaving, startSaveTransition] = useTransition();
 
-  function handleGenerate() {
+  function runGenerate() {
     setError(null);
     startTransition(async () => {
       try {
         const result = await generateRecipe();
         setRecipe(result);
+        setIsSaved(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Something went wrong");
+      }
+    });
+  }
+
+  function handleGenerateClick() {
+    if (recipe && !isSaved) {
+      toast.warning("This recipe isn't saved", {
+        description: "Generating another will lose it.",
+        action: {
+          label: "Discard & generate",
+          onClick: () => runGenerate(),
+        },
+      });
+      return;
+    }
+    runGenerate();
+  }
+
+  function handleSave() {
+    if (!recipe) return;
+    startSaveTransition(async () => {
+      try {
+        await saveRecipe(recipe);
+        setIsSaved(true);
+        toast.success("Recipe saved");
+      } catch (err) {
+        toast.error(
+          err instanceof Error ? err.message : "Failed to save recipe"
+        );
       }
     });
   }
@@ -27,7 +60,7 @@ export function RecipeGenerator() {
         Recipe
       </h2>
 
-      <Button onClick={handleGenerate} disabled={isPending}>
+      <Button onClick={handleGenerateClick} disabled={isPending}>
         {isPending
           ? "Thinking..."
           : recipe
@@ -39,9 +72,19 @@ export function RecipeGenerator() {
 
       {recipe && (
         <div className="flex flex-col gap-4 rounded-md border border-zinc-200 p-4 dark:border-zinc-800">
-          <h3 className="text-lg font-medium text-black dark:text-zinc-50">
-            {recipe.title}
-          </h3>
+          <div className="flex items-center justify-between gap-4">
+            <h3 className="text-lg font-medium text-black dark:text-zinc-50">
+              {recipe.title}
+            </h3>
+            <Button
+              onClick={handleSave}
+              disabled={isSaved || isSaving}
+              variant="outline"
+              size="sm"
+            >
+              {isSaved ? "Saved" : isSaving ? "Saving..." : "Save"}
+            </Button>
+          </div>
 
           <ol className="list-decimal space-y-1 pl-5 text-zinc-700 dark:text-zinc-300">
             {recipe.steps.map((step, i) => (

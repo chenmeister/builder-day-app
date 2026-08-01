@@ -2,6 +2,7 @@
 
 import { generateText, Output } from "ai";
 import { z } from "zod";
+import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
 
 const recipeSchema = z.object({
@@ -43,4 +44,19 @@ the fridge. Return:
   });
 
   return output;
+}
+
+export async function saveRecipe(recipe: Recipe) {
+  const { error } = await supabase.from("saved_recipes").insert({
+    title: recipe.title,
+    steps: recipe.steps,
+    used_ingredients: recipe.usedIngredients,
+    missing_items: recipe.missingIngredients,
+  });
+
+  if (error) {
+    throw new Error(`Failed to save recipe: ${error.message}`);
+  }
+
+  revalidatePath("/fridge/saved");
 }

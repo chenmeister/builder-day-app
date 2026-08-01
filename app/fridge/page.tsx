@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,9 +20,17 @@ export default async function FridgePage() {
   return (
     <div className="flex flex-col flex-1 items-center bg-zinc-50 font-sans dark:bg-black">
       <main className="flex w-full max-w-md flex-col gap-8 py-32 px-6">
-        <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
-          Fridge
-        </h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
+            Fridge
+          </h1>
+          <Link
+            href="/fridge/saved"
+            className="text-sm font-medium text-zinc-600 underline dark:text-zinc-400"
+          >
+            Saved recipes
+          </Link>
+        </div>
 
         <form action={addFridgeItem} className="flex gap-2">
           <Input name="name" placeholder="Item name" required className="flex-1" />
