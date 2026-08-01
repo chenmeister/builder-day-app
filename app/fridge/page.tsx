@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addFridgeItem, deleteFridgeItem } from "./actions";
+import { RecipeGenerator } from "./recipe-generator";
 
 export const dynamic = "force-dynamic";
 
@@ -57,6 +58,8 @@ export default async function FridgePage() {
             </p>
           )}
         </ul>
+
+        <RecipeGenerator />
       </main>
     </div>
   );
