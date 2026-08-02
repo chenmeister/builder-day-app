@@ -21,7 +21,7 @@ export async function addFridgeItem(formData: FormData) {
     throw new Error(`Failed to add item: ${error.message}`);
   }
 
-  revalidatePath("/fridge");
+  revalidatePath("/");
 }
 
 export async function deleteFridgeItem(formData: FormData) {
@@ -38,5 +38,5 @@ export async function deleteFridgeItem(formData: FormData) {
     throw new Error(`Failed to delete item: ${error.message}`);
   }
 
-  revalidatePath("/fridge");
+  revalidatePath("/");
 }

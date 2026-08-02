@@ -21,7 +21,7 @@ export default async function SavedRecipesPage() {
             Saved Recipes
           </h1>
           <Link
-            href="/fridge"
+            href="/"
             className="text-sm font-medium text-zinc-600 underline dark:text-zinc-400"
           >
             Back to fridge
