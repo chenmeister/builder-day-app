@@ -63,3 +63,23 @@ export async function saveRecipe(recipe: Recipe) {
 
   revalidatePath("/fridge/saved");
 }
+
+export async function deleteSavedRecipe(formData: FormData) {
+  await requireAuth();
+  const id = String(formData.get("id") ?? "");
+
+  if (!id) {
+    return;
+  }
+
+  const { error } = await supabase
+    .from("saved_recipes")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    throw new Error(`Failed to delete recipe: ${error.message}`);
+  }
+
+  revalidatePath("/fridge/saved");
+}

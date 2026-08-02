@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { Button } from "@/components/ui/button";
+import { deleteSavedRecipe } from "../recipe-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +36,17 @@ export default async function SavedRecipesPage() {
               key={recipe.id}
               className="flex flex-col gap-3 rounded-md border border-zinc-200 p-4 dark:border-zinc-800"
             >
-              <h2 className="text-lg font-medium text-black dark:text-zinc-50">
-                {recipe.title}
-              </h2>
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-lg font-medium text-black dark:text-zinc-50">
+                  {recipe.title}
+                </h2>
+                <form action={deleteSavedRecipe}>
+                  <input type="hidden" name="id" value={recipe.id} />
+                  <Button type="submit" variant="ghost" size="sm">
+                    Delete
+                  </Button>
+                </form>
+              </div>
 
               <ol className="list-decimal space-y-1 pl-5 text-zinc-700 dark:text-zinc-300">
                 {recipe.steps.map((step: string, i: number) => (

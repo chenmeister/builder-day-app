@@ -5,18 +5,23 @@ const {
   revalidatePath,
   selectMock,
   insertMock,
+  deleteEqMock,
   fromMock,
   generateText,
   outputObject,
 } = vi.hoisted(() => {
   const selectMock = vi.fn();
   const insertMock = vi.fn();
+  const deleteEqMock = vi.fn();
   const fromMock = vi.fn((table: string) =>
-    table === "fridge_items" ? { select: selectMock } : { insert: insertMock }
+    table === "fridge_items"
+      ? { select: selectMock }
+      : { insert: insertMock, delete: vi.fn(() => ({ eq: deleteEqMock })) }
   );
   return {
     selectMock,
     insertMock,
+    deleteEqMock,
     fromMock,
     requireAuth: vi.fn(),
     revalidatePath: vi.fn(),
@@ -33,7 +38,20 @@ vi.mock("ai", () => ({
   Output: { object: outputObject },
 }));
 
-import { generateRecipe, saveRecipe, type Recipe } from "./recipe-actions";
+import {
+  generateRecipe,
+  saveRecipe,
+  deleteSavedRecipe,
+  type Recipe,
+} from "./recipe-actions";
+
+function formDataWith(fields: Record<string, string>) {
+  const fd = new FormData();
+  for (const [key, value] of Object.entries(fields)) {
+    fd.set(key, value);
+  }
+  return fd;
+}
 
 const sampleRecipe: Recipe = {
   title: "Fridge Pasta",
@@ -120,6 +138,51 @@ describe("saveRecipe", () => {
 
     await expect(saveRecipe(sampleRecipe)).rejects.toThrow(
       "Failed to save recipe: boom"
+    );
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("deleteSavedRecipe", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    requireAuth.mockResolvedValue(undefined);
+    deleteEqMock.mockResolvedValue({ error: null });
+  });
+
+  it("requires auth before deleting", async () => {
+    requireAuth.mockRejectedValue(new Error("Unauthorized"));
+    const formData = formDataWith({ id: "5" });
+
+    await expect(deleteSavedRecipe(formData)).rejects.toThrow("Unauthorized");
+    expect(fromMock).not.toHaveBeenCalled();
+  });
+
+  it("deletes the recipe by id and revalidates the saved page", async () => {
+    const formData = formDataWith({ id: "5" });
+
+    await deleteSavedRecipe(formData);
+
+    expect(fromMock).toHaveBeenCalledWith("saved_recipes");
+    expect(deleteEqMock).toHaveBeenCalledWith("id", "5");
+    expect(revalidatePath).toHaveBeenCalledWith("/fridge/saved");
+  });
+
+  it("does nothing when id is missing", async () => {
+    const formData = formDataWith({});
+
+    await deleteSavedRecipe(formData);
+
+    expect(deleteEqMock).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("throws when the delete fails", async () => {
+    deleteEqMock.mockResolvedValue({ error: { message: "boom" } });
+    const formData = formDataWith({ id: "5" });
+
+    await expect(deleteSavedRecipe(formData)).rejects.toThrow(
+      "Failed to delete recipe: boom"
     );
     expect(revalidatePath).not.toHaveBeenCalled();
   });
