@@ -7,7 +7,12 @@ import { AUTH_COOKIE, authToken, verifyPassword } from "@/lib/auth";
 
 const loginSchema = z.object({
   password: z.string().min(1),
-  next: z.string().startsWith("/").default("/"),
+  // Must be a same-site relative path. Reject "//host" and "/\host", which
+  // browsers resolve as protocol-relative absolute URLs (open redirect).
+  next: z
+    .string()
+    .regex(/^\/(?!\/|\\)/)
+    .default("/"),
 });
 
 export async function login(formData: FormData) {

@@ -80,6 +80,32 @@ describe("login server action", () => {
     expect(cookieStore.set).not.toHaveBeenCalled();
   });
 
+  it("rejects a protocol-relative `next` value (open redirect)", async () => {
+    verifyPassword.mockReturnValue(true);
+    const formData = formDataWith({
+      password: "right",
+      next: "//evil.example.com",
+    });
+
+    await expect(login(formData)).rejects.toMatchObject({
+      url: "/login?error=1&next=%2F%2Fevil.example.com",
+    });
+    expect(cookieStore.set).not.toHaveBeenCalled();
+  });
+
+  it("rejects a backslash-prefixed `next` value (open redirect)", async () => {
+    verifyPassword.mockReturnValue(true);
+    const formData = formDataWith({
+      password: "right",
+      next: "/\\evil.example.com",
+    });
+
+    await expect(login(formData)).rejects.toMatchObject({
+      url: "/login?error=1&next=%2F%5Cevil.example.com",
+    });
+    expect(cookieStore.set).not.toHaveBeenCalled();
+  });
+
   it("defaults `next` to / when omitted", async () => {
     verifyPassword.mockReturnValue(true);
     const formData = formDataWith({ password: "right" });
