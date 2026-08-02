@@ -4,6 +4,7 @@ import { generateText, Output } from "ai";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
+import { requireAuth } from "@/lib/auth";
 
 const recipeSchema = z.object({
   title: z.string(),
@@ -15,6 +16,7 @@ const recipeSchema = z.object({
 export type Recipe = z.infer<typeof recipeSchema>;
 
 export async function generateRecipe(): Promise<Recipe> {
+  await requireAuth();
   const { data: items, error } = await supabase
     .from("fridge_items")
     .select("name, quantity");
@@ -47,6 +49,7 @@ the fridge. Return:
 }
 
 export async function saveRecipe(recipe: Recipe) {
+  await requireAuth();
   const { error } = await supabase.from("saved_recipes").insert({
     title: recipe.title,
     steps: recipe.steps,

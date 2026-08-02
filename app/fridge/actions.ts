@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { supabase } from "@/lib/supabase";
+import { requireAuth } from "@/lib/auth";
 
 export async function addFridgeItem(formData: FormData) {
+  await requireAuth();
   const name = String(formData.get("name") ?? "").trim();
   const quantity = Number(formData.get("quantity") ?? 1);
 
@@ -23,6 +25,7 @@ export async function addFridgeItem(formData: FormData) {
 }
 
 export async function deleteFridgeItem(formData: FormData) {
+  await requireAuth();
   const id = String(formData.get("id") ?? "");
 
   if (!id) {

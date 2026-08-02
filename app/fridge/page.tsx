@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabase";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addFridgeItem, deleteFridgeItem } from "./actions";
+import { logout } from "../login/actions";
 import { RecipeGenerator } from "./recipe-generator";
 
 export const dynamic = "force-dynamic";
@@ -24,12 +25,22 @@ export default async function FridgePage() {
           <h1 className="text-3xl font-semibold tracking-tight text-black dark:text-zinc-50">
             Fridge
           </h1>
-          <Link
-            href="/fridge/saved"
-            className="text-sm font-medium text-zinc-600 underline dark:text-zinc-400"
-          >
-            Saved recipes
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link
+              href="/fridge/saved"
+              className="text-sm font-medium text-zinc-600 underline dark:text-zinc-400"
+            >
+              Saved recipes
+            </Link>
+            <form action={logout}>
+              <button
+                type="submit"
+                className="text-sm font-medium text-zinc-600 underline dark:text-zinc-400"
+              >
+                Log out
+              </button>
+            </form>
+          </div>
         </div>
 
         <form action={addFridgeItem} className="flex gap-2">
